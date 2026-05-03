@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>OWASP Security | Yangi Eslatma</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5932ea;
+            --bg-color: #f9fbff;
+            --sidebar-width: 260px;
+        }
+        body { margin: 0; font-family: 'Poppins', sans-serif; background-color: var(--bg-color); display: flex; }
+        
+        /* Sidebar (Dashboard bilan bir xil) */
+        .sidebar { width: var(--sidebar-width); background: white; height: 100vh; padding: 30px 20px; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.03); }
+        .logo { font-size: 20px; font-weight: bold; margin-bottom: 50px; display: flex; align-items: center; color: #000; }
+        .logo i { color: var(--primary); margin-right: 10px; }
+        .nav-item { padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; color: #9197b3; transition: 0.3s; display: flex; align-items: center; text-decoration: none; font-size: 14px; }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-item i { margin-right: 15px; width: 20px; text-align: center; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+        
+        .form-card {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.02);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .form-header { margin-bottom: 30px; }
+        .form-header h2 { margin: 0; font-size: 22px; color: #333; }
+        .form-header p { margin: 5px 0 0; color: #9197b3; font-size: 14px; }
+
+        .form-group { margin-bottom: 25px; }
+        .form-group label { display: block; margin-bottom: 10px; font-size: 14px; color: #555; font-weight: 500; }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #f0f0f0;
+            border-radius: 15px;
+            background: #fcfdff;
+            outline: none;
+            transition: 0.3s;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .form-group input:focus, .form-group textarea:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px rgba(89, 50, 234, 0.05); 
+        }
+
+        .btn-container { display: flex; gap: 15px; margin-top: 10px; }
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+        }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-save:hover { background: #4a28c7; transform: translateY(-2px); }
+        .btn-cancel { background: #f1f1f1; color: #666; }
+        .btn-cancel:hover { background: #e5e5e5; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo"><i class="fas fa-shield-halved"></i> OWASP Security</div>
+        <a href="/" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a href="#" class="nav-item active"><i class="fas fa-plus-circle"></i> Yangi Qo'shish</a>
+        <a href="#" class="nav-item"><i class="fas fa-file-shield"></i> Xavfsizlik Testi</a>
+        <a href="/login/" class="nav-item" style="margin-top: auto;"><i class="fas fa-right-from-bracket"></i> Chiqish</a>
+    </div>
+
+    <div class="main-content">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Yangi Eslatma</h2>
+                <p>Ma'lumotlaringizni xavfsiz saqlang</p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Eslatma mavzusi</label>
+                    <input type="text" name="title" placeholder="Mavzuni kiriting..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Asosiy matn</label>
+                    <textarea name="content" rows="6" placeholder="Batafsil ma'lumot..." required></textarea>
+                </div>
+
+                <div class="btn-container">
+                    <a href="/" class="btn btn-cancel">Bekor qilish</a>
+                    <button type="submit" class="btn btn-save">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

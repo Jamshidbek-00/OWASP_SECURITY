@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>OWASP Security | Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5932ea;
+            --bg-color: #f9fbff;
+            --sidebar-width: 260px;
+        }
+        body { margin: 0; font-family: 'Poppins', sans-serif; background-color: var(--bg-color); display: flex; }
+        
+        /* Sidebar */
+        .sidebar { 
+            width: var(--sidebar-width); background: white; height: 100vh; 
+            padding: 30px 20px; position: fixed; box-shadow: 2px 0 10px rgba(0,0,0,0.03); z-index: 1000;
+        }
+        .logo { font-size: 20px; font-weight: bold; margin-bottom: 50px; display: flex; align-items: center; color: #000; }
+        .logo i { color: var(--primary); margin-right: 10px; }
+        .nav-item { 
+            padding: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; 
+            color: #9197b3; transition: 0.3s; display: flex; align-items: center; text-decoration: none; font-size: 14px;
+        }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-item i { margin-right: 15px; width: 20px; text-align: center; }
+
+        /* Main Content */
+        .main-content { 
+            margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); 
+            padding: 40px; min-height: 100vh;
+        }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+
+        /* Stats & Notes Container */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 30px; margin-bottom: 40px; }
+        .stat-card { background: white; padding: 25px; border-radius: 20px; display: flex; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.02); }
+        .stat-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 20px; background: #e7f6f2; color: #00ac4f; }
+        
+        .notes-container { background: white; padding: 35px; border-radius: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.02); }
+        .notes-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        
+        /* Tugmalar */
+        .btn-add { 
+            background: var(--primary); color: white; border: none; padding: 12px 24px; 
+            border-radius: 12px; cursor: pointer; font-weight: 600; transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-add:hover { background: #4a28c7; transform: translateY(-2px); }
+
+        /* Modal (Eslatma qo'shish oynasi) */
+        .modal {
+            display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 25px; width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        .modal-content input, .modal-content textarea {
+            width: 100%; padding: 12px; margin: 10px 0 20px 0; border: 1px solid #f0f0f0; border-radius: 10px; outline: none; box-sizing: border-box; background: #fcfdff;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo"><i class="fas fa-shield-halved"></i> OWASP Security</div>
+        
+        <!-- Dashboardga qaytish uchun href ni to'g'irlaymiz -->
+        <a href="/dashboard/" class="nav-item {% if request.path == '/dashboard/' %}active{% endif %}">
+            <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        
+        <a href="{% url 'security_test_page' %}" class="nav-item {% if 'security-test' in request.path %}active{% endif %}">
+            <i class="fas fa-file-shield"></i> Xavfsizlik Testi
+        </a>
+
+        <!-- Profilni dashboardga yo'naltirib turamiz (xato bermasligi uchun) -->
+        <a href="/dashboard/" class="nav-item">
+            <i class="fas fa-user-lock"></i> Profil
+        </a>
+        
+        <a href="/login/" class="nav-item" style="margin-top: 100px;">
+            <i class="fas fa-right-from-bracket"></i> Chiqish
+        </a>
+    </div>
+
+    <div class="main-content">
+        {% block content %}
+        <div class="top-header">
+            <h3 style="margin: 0;">Salom {{ username|default:"Foydalanuvchi" }} 👋,</h3>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-folder-open"></i></div>
+                <div>
+                    <div style="color: #acacac; font-size: 12px;">Eslatmalar</div>
+                    <div style="font-size: 24px; font-weight: bold;">{{ notes.count }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notes-container">
+            <div class="notes-header">
+                <div>
+                    <h2 style="margin: 0; font-size: 20px;">Barcha eslatmalar</h2>
+                    <span style="color: #16c098; font-size: 13px;">Aktiv ma'lumotlar ro'yxati</span>
+                </div>
+                <!-- Yangi qo'shish tugmasi -->
+                <button class="btn-add" onclick="document.getElementById('noteModal').style.display='flex'">
+                    <i class="fas fa-plus"></i> Yangi qo'shish
+                </button>
+            </div>
+
+            <div class="notes-list">
+                {% for note in notes %}
+                <div style="border-bottom: 1px solid #f3f3f3; padding: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin:0;">{{ note.title }}</h4>
+                        <p style="margin:5px 0 0; color:#888; font-size:14px;">
+                            {% if security_mode %}
+                                {{ note.content }}  <!-- Xavfsiz rejimda shunchaki matn -->
+                            {% else %}
+                                {{ note.content|safe }} <!-- Zaif rejimda HTML/JS kodni ishga tushiradi -->
+                            {% endif %}
+                        </p>
+                    </div>
+                    <a href="{% url 'delete_note' note.id %}" style="color:#ef4444; background:#fff5f5; padding:8px; border-radius:8px;">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+                {% empty %}
+                <div style="text-align: center; padding: 40px; color: #ccc;">
+                    <i class="fas fa-inbox" style="font-size: 40px;"></i>
+                    <p>Ma'lumot topilmadi</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+
+    <!-- Modal Oyna -->
+    <div id="noteModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top: 0;">Yangi eslatma yaratish</h3>
+            <form action="/add-note/" method="POST">
+                {% csrf_token %}
+                <label style="font-size: 13px; color: #666;">Mavzu</label>
+                <input type="text" name="title" placeholder="Sarlavhani yozing..." required>
+                
+                <label style="font-size: 13px; color: #666;">Mazmuni</label>
+                <textarea name="content" rows="4" placeholder="Batafsil ma'lumot..." required></textarea>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn-add" style="flex: 1; justify-content: center;">Saqlash</button>
+                    <button type="button" onclick="document.getElementById('noteModal').style.display='none'" style="flex: 1; background: #f3f0ff; color: var(--primary); border: none; border-radius: 12px; cursor: pointer; font-weight: 600;">Bekor qilish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
